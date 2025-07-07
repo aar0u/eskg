@@ -21,7 +21,7 @@
 | --key | Creating a license key for ESET Smart Security Premium                                                                     |
 | --small-business-key  | Creating a license key for ESET Small Business Security (1 key - 5 devices)                                |
 | --advanced-key        | Creating a license key for ESET PROTECT Advanced (1 key - 25 devices) - works only with ```mailticking```, ```fakemail```, ```inboxes```, ```incognitomail``` and ```--custom-email-api``` |
-| --vpn-codes           | Creating 10 codes for ESET VPN + 1 ESET Small Business Security key                                        |
+| --vpn-codes           | [DISABLED] Creating 10 codes for ESET VPN + 1 ESET Small Business Security key                             |
 | --account             | Creating an ESET HOME Account (to activate the free trial version)                                         |
 | --protecthub-account  | Creating a ESET ProtectHub Account (to activate the free trial version) - works only with ```mailticking```, ```fakemail```, ```inboxes```, ```incognitomail``` and ```--custom-email-api``` |
 | --only-webdriver-update | Updates/installs webdrivers and browsers without generating accounts and license keys                    |
@@ -54,3 +54,4 @@
 | --disable-progress-bar | Disables the webdriver download progress bar |
 | --disable-output-file  | Disables the output txt file generation |
 | --repeat {number}      | Specifies how many times to repeat generation |
+| --proxy-file {string}  | Specifies the path from where the list of proxies will be read from, default - proxies.txt |
