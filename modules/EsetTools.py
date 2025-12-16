@@ -123,36 +123,52 @@ class EsetKeygen(object):
         
     def sendRequestForKey(self):
         uCE = untilConditionExecute
+        exec_js = self.driver.execute_script
 
         logging.info(f'[{self.mode}] Request sending...')
         console_log(f'\n[{self.mode}] Request sending...', INFO, silent_mode=SILENT_MODE)
         self.driver.get('https://home.eset.com/subscriptions/choose-trial')
-        uCE(self.driver, f"return {GET_EBAV}('button', 'data-label', 'subscription-choose-trial-ehsp-card-button') != null")
-        if self.mode == 'ESET HOME':
-            uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'subscription-choose-trial-ehsp-card-button'))")
-        elif self.mode == 'SMALL BUSINESS':
-            uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'subscription-choose-trial-esbs-card-button'))")
-        try:
-            for button in self.driver.find_elements('tag name', 'button'):
-                if button.get_attribute('innerText').strip().lower() == 'continue':
-                    button.click()
-                    break
-                time.sleep(0.05)
-            else:
-                raise RuntimeError('Continue button error!')
-            uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'subscription-choose-trial-esbs-card-button'))")
-            time.sleep(1)
-            for button in self.driver.find_elements('tag name', 'button'):
-                if button.get_attribute('innerText').strip().lower() == 'continue':
-                    button.click()
-                    break
-                time.sleep(0.05)
-            else:
-                raise RuntimeError('Continue button error!')
-            logging.info(f'[{self.mode}] Request successfully sent!')
-            console_log(f'[{self.mode}] Request successfully sent!', OK, silent_mode=SILENT_MODE)
-        except:
-            raise RuntimeError('Request sending error!!!')
+        uCE(self.driver, f"return {GET_EBAV}('button', 'data-label', 'onboarding-welcome-skip-introduction-btn') != null")
+        uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'onboarding-welcome-skip-introduction-btn'))")
+
+        uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('input', 'name', 'onboarding-add-subscription',3))")
+        self.click_button_with_text('continue')
+
+        uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('input', 'name', 'protect-device', 1))")
+        self.click_button_with_text('continue')
+
+        uCE(self.driver, f"return {GET_EBAV}('div', 'data-label', 'onboarding-trial-subscription-card') != null")
+        self.click_button_with_text('continue')
+
+        uCE(self.driver, f"return {GET_EBID}('name') != null")
+        exec_js(f"return {GET_EBID}('name')").send_keys("John Bla")
+        uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'onboarding-members-continue-btn'))")
+        time.sleep(0.5)
+        uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'onboarding-members-continue-btn'))")
+        time.sleep(0.5)
+        uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('label', 'data-label', 'onboarding-members-me-option'))")
+        time.sleep(0.5)
+        self.click_button_with_text('continue')
+        time.sleep(0.5)
+        self.click_button_with_text('Finish for now')
+
+        uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'dashboard-subscriptions-card-button'))")
+
+        uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'license-list-open-detail-page-btn'))")
+
+        uCE(self.driver, f"return {GET_EBAV}('div', 'data-label', 'license-detail-info') != null")
+
+        logging.info(f'[{self.mode}] Request successfully sent!')
+        console_log(f'[{self.mode}] Request successfully sent!', OK, silent_mode=SILENT_MODE)
+
+    def click_button_with_text(self, button_text):
+        for button in self.driver.find_elements('tag name', 'button'):
+            if button.get_attribute('innerText').strip().lower() == button_text.lower():
+                button.click()
+                break
+            time.sleep(0.5)
+        else:
+            raise RuntimeError(f'{button_text} button error!')
 
     def getLD(self):
         exec_js = self.driver.execute_script
