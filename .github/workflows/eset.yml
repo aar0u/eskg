@@ -80,6 +80,57 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v5
 
+      - name: Delete previous workflow runs
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            // First, get all workflows to find the workflow ID
+            const workflows = await github.rest.actions.listRepoWorkflows({
+              owner,
+              repo
+            });
+            
+            // Find the workflow by filename
+            const workflow = workflows.data.workflows.find(w => w.path === '.github/workflows/eset.yml');
+            if (!workflow) {
+              console.error('Could not find the eset.yml workflow');
+              return;
+            }
+            
+            const workflowId = workflow.id;
+            console.log(`Found workflow ID: ${workflowId}`);
+            
+            // Get all workflow runs for the current workflow
+            const runs = await github.rest.actions.listWorkflowRuns({
+              owner,
+              repo,
+              workflow_id: workflowId,
+              per_page: 100
+            });
+            
+            // Skip the latest run (the one currently running)
+            const runsToDelete = runs.data.workflow_runs.slice(1);
+            
+            console.log(`Found ${runsToDelete.length} previous workflow runs to delete`);
+            
+            // Delete previous runs
+            for (const run of runsToDelete) {
+              try {
+                await github.rest.actions.deleteWorkflowRun({
+                  owner,
+                  repo,
+                  run_id: run.id
+                });
+                console.log(`Deleted workflow run #${run.run_number}`);
+              } catch (error) {
+                console.error(`Failed to delete workflow run #${run.run_number}: ${error.message}`);
+              }
+            }
+
       - name: Clone Repository
         run: git clone -b "${{ steps.vars.outputs.branch }}" https://github.com/aar0u/eskg.git ESET-KeyGen
 

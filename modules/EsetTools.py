@@ -137,7 +137,13 @@ class EsetKeygen(object):
         uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('input', 'name', 'protect-device', 1))")
         self.click_button_with_text('continue')
 
-        uCE(self.driver, f"return {GET_EBAV}('div', 'data-label', 'onboarding-trial-subscription-card') != null")
+        try:
+            uCE(self.driver, f"return {GET_EBAV}('div', 'data-label', 'onboarding-trial-subscription-card') != null")
+        except RuntimeError:
+            # Print DOM when timeout occurs
+            print("DOM content when waiting for 'onboarding-trial-subscription-card':")
+            print(self.driver.page_source)
+            raise
         self.click_button_with_text('continue')
 
         uCE(self.driver, f"return {GET_EBID}('name') != null")
