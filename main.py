@@ -83,7 +83,7 @@ args = {
     'custom_browser_location': '',
     'email_api': DEFAULT_EMAIL_API,
     'custom_email_api': False,
-    'skip_update_check': False,
+    'skip_update_check': True,
     'no_logo': False,
     'disable_progress_bar': False,
     'disable_output_file': False,
@@ -402,6 +402,7 @@ def main(disable_exit=False):
         sys.exit(args['return_exit_code'])
     if MBCI_MODE and not disable_exit:
         print()
+    keep_browser_on_error = False
     try:
         # changing input arguments for special cases
         if not args['update'] and not args['install'] and not args['reset_eset_vpn']:
@@ -652,6 +653,7 @@ def main(disable_exit=False):
                 else:
                     EPHK_obj.removeLicense()
     except IPBlockedException:
+        keep_browser_on_error = True
         logging.critical("EXC_INFO:", exc_info=True)
         traceback_string = traceback.format_exc()
         if PROXIES != []:
@@ -660,6 +662,7 @@ def main(disable_exit=False):
                 PROXY_COUNTER += 1
         console_log(traceback_string, ERROR, silent_mode=SILENT_MODE)
     except Exception as E:
+        keep_browser_on_error = True
         PROXY_ERROR_COUNTER_LIMIT += 1
         logging.critical("EXC_INFO:", exc_info=True)
         traceback_string = traceback.format_exc()
@@ -674,6 +677,8 @@ def main(disable_exit=False):
             PROXY_COUNTER += 1
 
     if globals().get('DRIVER', None) is not None:
+        if keep_browser_on_error and not SILENT_MODE:
+            input(f'[  {colorama.Fore.YELLOW}INPT{colorama.Fore.RESET}  ] {colorama.Fore.CYAN}Error occurred. Browser is kept open for inspection. Press Enter to close it...{colorama.Fore.RESET}')
         DRIVER.quit()
     if not disable_exit:
         exit_program(0)

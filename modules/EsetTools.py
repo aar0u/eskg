@@ -8,6 +8,8 @@ import logging
 import time
 import sys
 
+from selenium.common.exceptions import StaleElementReferenceException
+
 SILENT_MODE = '--silent' in sys.argv
 
 class IPBlockedException(Exception):
@@ -168,13 +170,16 @@ class EsetKeygen(object):
         console_log(f'[{self.mode}] Request successfully sent!', OK, silent_mode=SILENT_MODE)
 
     def click_button_with_text(self, button_text):
-        for button in self.driver.find_elements('tag name', 'button'):
-            if button.get_attribute('innerText').strip().lower() == button_text.lower():
-                button.click()
-                break
+        for _ in range(DEFAULT_MAX_ITER):
+            try:
+                for button in self.driver.find_elements('tag name', 'button'):
+                    if button.get_attribute('innerText').strip().lower() == button_text.lower():
+                        button.click()
+                        return
+            except StaleElementReferenceException:
+                pass
             time.sleep(0.5)
-        else:
-            raise RuntimeError(f'{button_text} button error!')
+        raise RuntimeError(f'{button_text} button error!')
 
     def getLD(self):
         exec_js = self.driver.execute_script

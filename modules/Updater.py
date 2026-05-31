@@ -102,8 +102,7 @@ class Updater:
             update_json = response.json()
             try:
                 if update_json.get('message') is not None:
-                    logging.error('Your IP address has been blocked. try again later or use a VPN!')
-                    console_log('Your IP address has been blocked. try again later or use a VPN!', ERROR, silent_mode=self.disable_logging)
+                    logging.error('GitHub releases request failed: %s', update_json.get('message'))
                     return None
             except AttributeError:
                 pass
