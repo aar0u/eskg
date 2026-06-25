@@ -48,17 +48,22 @@ class EsetRegister(object):
             console_log("Cookies were not bypassed (it doesn't affect the algorithm, I think :D)", ERROR, silent_mode=SILENT_MODE)
 
         exec_js(f"return {GET_EBID}('email')").send_keys(self.email_obj.email)
-        uCE(self.driver, f"return {CLICK_WITH_BOOL}({DEFINE_GET_EBAV_FUNCTION}('button', 'data-label', 'register-continue-button'))")
-        time.sleep(1)
-        try:
-            if exec_js(f"return {GET_EBAV}('div', 'data-label', 'register-email-formGroup-validation')") is not None:
-                raise RuntimeError(f'Email: {self.email_obj.email} is already registered!')
-        except:
-            pass
+
+        # ESET used to show the password step only after clicking Continue.
+        # The current form can render email and password together, so skip the
+        # old Continue button when the password input is already available.
+        if exec_js(f"return {GET_EBID}('password') == null"):
+            uCE(self.driver, f"return {CLICK_WITH_BOOL}({DEFINE_GET_EBAV_FUNCTION}('button', 'data-label', 'register-continue-button'))")
+            time.sleep(1)
+            try:
+                if exec_js(f"return {GET_EBAV}('div', 'data-label', 'register-email-formGroup-validation')") is not None:
+                    raise RuntimeError(f'Email: {self.email_obj.email} is already registered!')
+            except:
+                pass
   
         logging.info('[PASSWD] Register page loading...')
         console_log('\n[PASSWD] Register page loading...', INFO, silent_mode=SILENT_MODE)
-        uCE(self.driver, f"return typeof {GET_EBAV}('button', 'data-label', 'register-create-account-button') === 'object'")
+        uCE(self.driver, f"return {GET_EBID}('password') != null")
         logging.info('[PASSWD] Register page is loaded!')
         console_log('[PASSWD] Register page is loaded!', OK, silent_mode=SILENT_MODE)
         exec_js(f"return {GET_EBID}('password')").send_keys(self.eset_password)
@@ -129,7 +134,7 @@ class EsetKeygen(object):
 
         logging.info(f'[{self.mode}] Request sending...')
         console_log(f'\n[{self.mode}] Request sending...', INFO, silent_mode=SILENT_MODE)
-        self.driver.get('https://home.eset.com/subscriptions/choose-trial')
+        # self.driver.get('https://home.eset.com/subscriptions/choose-trial')
         uCE(self.driver, f"return {GET_EBAV}('button', 'data-label', 'onboarding-welcome-skip-introduction-btn') != null")
         uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'onboarding-welcome-skip-introduction-btn'))")
 

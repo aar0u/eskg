@@ -1,1 +1,0 @@
-python main.py --chrome --key --no-headless --skip-webdriver-menu --custom-browser-location "C:\Program Files\Google\Chrome\Application\chrome.exe"
