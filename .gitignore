@@ -1,4 +1,1 @@
-*.exe
-*.pyc
-*.txt
-.DS_STORE
+node_modules/

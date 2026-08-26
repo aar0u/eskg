@@ -1,0 +1,12 @@
+{
+  "name": "eskg",
+  "version": "1.5.5.8",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "devDependencies": {
+    "playwright": "1.57.0"
+  }
+}
