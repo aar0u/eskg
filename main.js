@@ -615,7 +615,13 @@ class EmailFakeProvider extends WebWrapperEmailProvider {
     await this.page.locator('#email_ch_text').waitFor({ timeout: 15000 });
     this.email = (await this.page.locator('#email_ch_text').innerText()).trim();
     consoleLog(`[EMAIL] Current mailbox: ${this.email}`, LoggerType.INFO);
-    await this.page.goto('https://emailfake.com');
+    const response = await this.page.goto('https://emailfake.com');
+    if (!response || !response.ok()) {
+      throw new Error(`EmailFakeProvider: inbox page returned status ${response ? response.status() : 'unknown'} (possibly rate-limited).`);
+    }
+    await this.page.locator('#email-table').waitFor({ state: 'attached', timeout: 10000 }).catch(() => {
+      throw new Error('EmailFakeProvider: inbox page did not render (possibly rate-limited or blocked).');
+    });
   }
 
   async parseInbox() {
@@ -694,8 +700,16 @@ async function clickButtonWithText(page, text) {
   throw new Error(`${text} button error!`);
 }
 
+async function assertTrialIsAvailable(page) {
+  const noTrialHeading = page.getByText('No free 30-day trials available', { exact: true });
+  if (await noTrialHeading.count().catch(() => 0)) {
+    throw new Error('ESET reports no free 30-day trial available for this account (trial quota already used).');
+  }
+}
+
 async function clickFirstAvailable(page, locatorFactories, description, { maxIter = DEFAULT_MAX_ITER } = {}) {
   for (let attempt = 0; attempt < maxIter; attempt += 1) {
+    await assertTrialIsAvailable(page);
     for (const createLocator of locatorFactories) {
       try {
         const locator = createLocator(page);
@@ -1008,7 +1022,6 @@ async function runIteration(args, iteration) {
 
   ({ browser, context, page } = await initBrowser({ headless: !args.no_headless }));
   emailPage = page;
-  if (WEB_WRAPPER_EMAIL_PROVIDERS.includes(args.email_provider)) page = await context.newPage();
 
   try {
     const emailObj = buildEmailObject(args.email_provider, emailPage);
@@ -1018,6 +1031,9 @@ async function runIteration(args, iteration) {
     currentEmail = emailObj.email;
     if (!String(currentEmail || "").trim()) throw new Error("Email was not configured.");
 
+    if (WEB_WRAPPER_EMAIL_PROVIDERS.includes(args.email_provider)) {
+      page = await context.newPage();
+    }
     await page.bringToFront().catch(() => null);
     const password = randomPassword(10);
     const registration = new EsetRegister(emailObj, password, page);
